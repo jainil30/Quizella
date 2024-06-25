@@ -1,100 +1,77 @@
-import { FlatList, Text, View } from "react-native";
-import styles from "../../css/style";
-import { Colors } from "react-native/Libraries/NewAppScreen";
+import {FlatList, Text, View} from 'react-native';
+import styles from '../../css/style';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {useState, useEffect} from 'react';
+import {Question} from '../../models/Question';
+import {databaseService} from '../../services/database';
 
+const AdminUserReportScreen = ({route}) => {
+  console.log(
+    '___________________________Inside Admin Report Screen___________________________',
+  );
+  const {userId} = route.params;
+  const [questions, setQuestions] = useState<
+    (Question & {
+      chosen_option: number;
+      is_correct: boolean;
+      attempt_created_at: string;
+    })[]
+  >([]);
 
-const AdminUserReportScreen = () => {
+  useEffect(() => {
+    fetchQuestionsByUserId(userId);
+  }, []);
 
-    const questions = [
-        {
-            "attempt_id" : 1,
-            "user_id" : 1, 
-            "question_id" : 1,
-            "choosen_option" : 1,
-            "is_correct" : true,
-        },
-        {
-            "attempt_id" : 2,
-            "user_id" : 2, 
-            "question_id" : 2,
-            "choosen_option" : 2,
-            "is_correct" : true,
-        },
-        {
-            "attempt_id" : 3,
-            "user_id" : 3, 
-            "question_id" : 3,
-            "choosen_option" : 3,
-            "is_correct" : false,
-        },
-        {
-            "attempt_id" : 4,
-            "user_id" : 4, 
-            "question_id" : 4,
-            "choosen_option" : 4,
-            "is_correct" : false,
-        },
-        {
-            "attempt_id" : 5,
-            "user_id" : 5, 
-            "question_id" : 5,
-            "choosen_option" : 5,
-            "is_correct" : false,
-        },
-        {
-            "attempt_id" : 6,
-            "user_id" : 6, 
-            "question_id" : 6,
-            "choosen_option" : 6,
-            "is_correct" : false,
-        },
-        {
-            "attempt_id" : 7,
-            "user_id" : 7, 
-            "question_id" : 7,
-            "choosen_option" : 7,
-            "is_correct" : false,
-        },
-        {
-            "attempt_id" : 8,
-            "user_id" : 8, 
-            "question_id" : 8,
-            "choosen_option" : 8,
-            "is_correct" : true,
-        },
-        {
-            "attempt_id" : 9,
-            "user_id" : 9, 
-            "question_id" : 9,
-            "choosen_option" : 9,
-            "is_correct" : true,
-        },
-        {
-            "attempt_id" : 10,
-            "user_id" : 10, 
-            "question_id" : 10,
-            "choosen_option" : 10,
-            "is_correct" : true,
-        },
-    ];
-    return (
-        <View style={styles.screen}>
-            <FlatList
-                data={questions}
-                renderItem={(item) => {
-                    return (
-                        <View style={[styles.reportItemContainer, {backgroundColor: 'white', borderColor: (item.item.is_correct)? 'green' : 'red', borderWidth: 3, elevation: 10}]}>
-                            <Text style={styles.normalText}>Queston No. : {item.index + 1}</Text>    
-                            <Text style={styles.normalText}>{item.item.choosen_option}</Text>   
-                            <Text style={styles.normalText}>{item.item.question_id}</Text>   
-                            <Text style={styles.normalText}>{item.item.question_id}</Text>   
-                        </View>
-                    )
-                }}
-                style={{width:'100%'}}
-                />
-        </View>
-    )
-}
+  const fetchQuestionsByUserId = (userId: number) => {
+    databaseService
+      .getQuestionsByUserId(userId)
+      .then(setQuestions)
+      .catch(error => console.log(error));
+  };
+
+  console.log('Attempted Question : ' + questions.length);
+  return (
+    <View style={styles.screen}>
+      {questions.length == 0 ? (
+        <Text style={[styles.title, {fontSize: 20}]}>
+          User have not attempted test
+        </Text>
+      ) : (
+        <FlatList
+          data={questions}
+          renderItem={item => {
+            console.log(item.item);
+            return (
+              <View
+                style={[
+                  styles.reportItemContainer,
+                  {
+                    backgroundColor: 'white',
+                    borderColor: item.item.is_correct ? 'green' : 'red',
+                    borderWidth: 3,
+                    elevation: 10,
+                  },
+                ]}>
+                <Text style={styles.normalText}>
+                  Queston No. : {item.index + 1}
+                </Text>
+                <Text style={[styles.normalText, {fontWeight: 'bold'}]}>
+                  Question : {item.item.question}
+                </Text>
+                <Text style={styles.normalText}>
+                  Choosen Answer : {item.item.chosen_option}
+                </Text>
+                <Text style={styles.normalText}>
+                  Correct Answer : {item.item.correct_option}
+                </Text>
+              </View>
+            );
+          }}
+          style={{width: '100%'}}
+        />
+      )}
+    </View>
+  );
+};
 
 export default AdminUserReportScreen;
